@@ -1,15 +1,15 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Meteor Madness — NeoWs Integrated</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meteor Madness - NASA Space Apps 2025</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header>
-    <h1>Meteor Madness — NeoWs Integrated</h1>
-    <p class="muted">Select a NASA NEO or enter parameters manually. Click the globe to set lat/lon, then Simulate.</p>
+    <h1>Meteor Madness 🌠</h1>
+    <p>Interactive asteroid impact simulator using NASA NeoWs API</p>
   </header>
 
   <main class="layout">
@@ -17,20 +17,20 @@
       <section class="block">
         <label for="apiKey">NASA API Key</label>
         <input id="apiKey" placeholder="Enter API key or leave as DEMO_KEY" value="DEMO_KEY">
-        <small class="muted">Get your key at api.nasa.gov (recommended).</small>
+        <small>Get your key at <a href="https://api.nasa.gov/" target="_blank">api.nasa.gov</a></small>
       </section>
 
       <section class="block">
         <h3>Pick NEO (from NASA)</h3>
-        <div class="row">
-          <button id="loadNeos">Load NEOs</button>
-          <select id="neoList"><option value="">-- select an asteroid --</option></select>
-        </div>
-        <div class="muted" id="neoInfo">No NEO loaded</div>
+        <button id="loadNeos">Load NEOs</button>
+        <select id="neoList">
+          <option value="">-- select an asteroid --</option>
+        </select>
+        <div id="neoInfo" class="muted">No NEO loaded</div>
       </section>
 
       <section class="block">
-        <h3>Asteroid parameters</h3>
+        <h3>Asteroid Parameters</h3>
         <label>Diameter (m)</label>
         <input id="diameterN" type="number" min="1" value="50">
 
@@ -55,7 +55,7 @@
 
         <div class="row">
           <button id="simulate">Simulate</button>
-          <button id="prefillCloseApproach">Prefill from close-approach</button>
+          <button id="prefillCloseApproach">Prefill from NEO Data</button>
         </div>
       </section>
 
@@ -69,26 +69,20 @@
       <div class="visRow">
         <canvas id="globe" width="360" height="360"></canvas>
         <div class="stats card">
-          <div><strong>Kinetic Energy</strong> <span id="energy">—</span></div>
-          <div><strong>Crater</strong> <span id="crater">—</span></div>
-          <div><strong>Severe radius</strong> <span id="severe">—</span></div>
-          <div><strong>Tsunami radius</strong> <span id="tsunami">—</span></div>
-          <div style="margin-top:8px">
-            <button id="downloadBtn">Download PNG</button>
-          </div>
+          <div><strong>Kinetic Energy:</strong> <span id="energy">—</span></div>
+          <div><strong>Crater:</strong> <span id="crater">—</span></div>
+          <div><strong>Severe radius:</strong> <span id="severe">—</span></div>
+          <div><strong>Tsunami radius:</strong> <span id="tsunami">—</span></div>
+          <button id="downloadBtn">Download PNG</button>
         </div>
       </div>
 
       <canvas id="vis" width="900" height="500"></canvas>
-
-      <div class="note">
-        <strong>Notes:</strong> This demo pulls estimated diameter and last close-approach speed from NASA NeoWs where available. The simulation physics remains the simplified educational model from the previous version.
-      </div>
     </section>
   </main>
 
   <footer>
-    Built with NASA NeoWs (Near-Earth Object Web Service). See API docs: api.nasa.gov. 
+    Built with NASA NeoWs (Near-Earth Object Web Service). API docs: <a href="https://api.nasa.gov/" target="_blank">api.nasa.gov</a>
   </footer>
 
   <script src="app.js"></script>
