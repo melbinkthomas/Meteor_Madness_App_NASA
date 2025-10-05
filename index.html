@@ -1,483 +1,96 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Meteor Madness — Impact Simulator</title>
-<style>
-  :root{
-    --bg:#0f1724; --card:#0b1220; --accent:#18a999; --muted:#94a3b8; --glass: rgba(255,255,255,0.04);
-  }
-  body{margin:0;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;background:linear-gradient(180deg,#071224,#071a2a);color:#e6eef6;display:flex;flex-direction:column;min-height:100vh}
-  header{padding:18px 20px;border-bottom:1px solid rgba(255,255,255,0.03);display:flex;gap:12px;align-items:center}
-  header h1{font-size:18px;margin:0}
-  .container{display:grid;grid-template-columns:420px 1fr;gap:18px;padding:18px;align-items:start}
-  .card{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 6px 18px rgba(2,6,23,0.6);border:1px solid rgba(255,255,255,0.03)}
-  label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
-  .row{display:flex;gap:8px;align-items:center}
-  input[type="range"]{width:100%}
-  input[type="number"], select{width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit}
-  .controls{display:grid;gap:10px}
-  #globeWrap{display:flex;gap:12px;align-items:flex-start}
-  #globe{background:linear-gradient(180deg,#06202b,#04202e);border-radius:999px;display:block}
-  .stats{margin-top:8px}
-  .statRow{display:flex;justify-content:space-between;padding:6px 8px;border-radius:8px;background:var(--glass);margin-bottom:6px}
-  button{background:var(--accent);border:none;padding:10px 12px;border-radius:10px;color:#031318;cursor:pointer;font-weight:600}
-  small{color:var(--muted)}
-  footer{padding:10px 18px;color:var(--muted);font-size:13px;text-align:center;margin-top:auto}
-  a.link{color:var(--accent);text-decoration:none}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-  .legendItem{display:flex;gap:8px;align-items:center;font-size:12px}
-  .swatch{width:16px;height:12px;border-radius:3px}
-  .sw-crater{background:rgba(255,255,255,0.9)}
-  .sw-severe{background:rgba(255,80,60,0.75)}
-  .sw-thermal{background:rgba(255,170,60,0.6)}
-  .sw-light{background:rgba(255,200,120,0.45)}
-  .sw-tsunami{background:rgba(60,150,255,0.45)}
-  .muted{color:var(--muted);font-size:13px}
-  .top-controls{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:10px}
-  .footer-note{font-size:12px;color:var(--muted);margin-top:8px}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Meteor Madness — NeoWs Integrated</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<header>
-  <div>
-    <h1>Meteor Madness — Simple Impact Simulator</h1>
-    <small class="muted">Educational demo — approximate physics, for learning and prototyping.</small>
-  </div>
-  <div style="flex:1"></div>
-  <div><a class="link" href="https://www.spaceappschallenge.org/2025/challenges/meteor-madness/" target="_blank">Meteor Madness — Challenge page</a></div>
-</header>
+  <header>
+    <h1>Meteor Madness — NeoWs Integrated</h1>
+    <p class="muted">Select a NASA NEO or enter parameters manually. Click the globe to set lat/lon, then Simulate.</p>
+  </header>
 
-<div class="container">
-  <div class="card">
-    <div class="top-controls">
-      <div>
-        <label>Asteroid Diameter (meters)</label>
-        <input id="diameter" type="range" min="1" max="20000" step="1" value="50">
-        <div class="row"><input id="diameterN" type="number" min="1" max="20000" value="50"> <small class="muted" style="margin-left:8px">m</small></div>
-      </div>
-      <div style="width:10px"></div>
-    </div>
+  <main class="layout">
+    <aside class="panel">
+      <section class="block">
+        <label for="apiKey">NASA API Key</label>
+        <input id="apiKey" placeholder="Enter API key or leave as DEMO_KEY" value="DEMO_KEY">
+        <small class="muted">Get your key at api.nasa.gov (recommended).</small>
+      </section>
 
-    <div class="controls">
-      <div class="grid2">
-        <div>
-          <label>Velocity</label>
-          <input id="velocity" type="range" min="5" max="70" step="0.1" value="20">
-          <div class="row"><input id="velocityN" type="number" min="5" max="70" step="0.1" value="20"> <small class="muted" style="margin-left:8px">km/s</small></div>
+      <section class="block">
+        <h3>Pick NEO (from NASA)</h3>
+        <div class="row">
+          <button id="loadNeos">Load NEOs</button>
+          <select id="neoList"><option value="">-- select an asteroid --</option></select>
         </div>
-        <div>
-          <label>Density</label>
-          <select id="density">
-            <option value="3000">Rocky — 3000 kg/m³</option>
-            <option value="1000">Icy — 1000 kg/m³</option>
-            <option value="7800">Metallic — 7800 kg/m³</option>
-          </select>
+        <div class="muted" id="neoInfo">No NEO loaded</div>
+      </section>
+
+      <section class="block">
+        <h3>Asteroid parameters</h3>
+        <label>Diameter (m)</label>
+        <input id="diameterN" type="number" min="1" value="50">
+
+        <label>Velocity (km/s)</label>
+        <input id="velocityN" type="number" step="0.1" min="0.1" value="20">
+
+        <label>Density</label>
+        <select id="density">
+          <option value="3000">Rocky — 3000 kg/m³</option>
+          <option value="1000">Icy — 1000 kg/m³</option>
+          <option value="7800">Metallic — 7800 kg/m³</option>
+        </select>
+
+        <label>Angle (deg)</label>
+        <input id="angleN" type="number" min="10" max="90" value="45">
+
+        <label>Target</label>
+        <select id="targetType">
+          <option value="land">Land</option>
+          <option value="ocean">Ocean</option>
+        </select>
+
+        <div class="row">
+          <button id="simulate">Simulate</button>
+          <button id="prefillCloseApproach">Prefill from close-approach</button>
         </div>
-      </div>
+      </section>
 
-      <div class="grid2">
-        <div>
-          <label>Impact Angle</label>
-          <input id="angle" type="range" min="10" max="90" step="1" value="45">
-          <div class="row"><input id="angleN" type="number" min="10" max="90" value="45"> <small class="muted" style="margin-left:8px">deg</small></div>
-        </div>
-        <div>
-          <label>Target Type</label>
-          <select id="targetType">
-            <option value="land">Land</option>
-            <option value="ocean">Ocean</option>
-          </select>
-        </div>
-      </div>
+      <section class="block small">
+        <label>Selected Lat, Lon</label>
+        <div id="latlon">—</div>
+      </section>
+    </aside>
 
-      <label>Impact Location (click the globe)</label>
-      <div id="globeWrap">
-        <canvas id="globe" width="360" height="360" style="touch-action:none"></canvas>
-        <div style="flex:1">
-          <div class="stats card" style="padding:10px">
-            <div class="statRow"><div>Impact Lat, Lon</div><div id="latlon">—</div></div>
-            <div class="statRow"><div>Kinetic Energy</div><div id="energy">—</div></div>
-            <div class="statRow"><div>Estimated Crater Diameter</div><div id="crater">—</div></div>
-            <div class="statRow"><div>Severe Damage Radius</div><div id="severe">—</div></div>
-            <div class="statRow"><div>Thermal Radius</div><div id="thermal">—</div></div>
-            <div class="statRow"><div>Tsunami Radius</div><div id="tsunami">—</div></div>
-            <div class="legend">
-              <div class="legendItem"><div class="swatch sw-crater"></div>Crater</div>
-              <div class="legendItem"><div class="swatch sw-severe"></div>Severe damage</div>
-              <div class="legendItem"><div class="swatch sw-thermal"></div>Thermal</div>
-              <div class="legendItem"><div class="swatch sw-light"></div>Light damage</div>
-              <div class="legendItem"><div class="swatch sw-tsunami"></div>Tsunami</div>
-            </div>
-
-            <div style="display:flex;gap:8px;margin-top:10px">
-              <button id="simulate">Simulate</button>
-              <button id="downloadBtn">Download PNG</button>
-            </div>
-
-            <div class="footer-note">Tip: Click anywhere on the globe to set latitude/longitude. Choose "Ocean" to show tsunami effect.</div>
+    <section class="main">
+      <div class="visRow">
+        <canvas id="globe" width="360" height="360"></canvas>
+        <div class="stats card">
+          <div><strong>Kinetic Energy</strong> <span id="energy">—</span></div>
+          <div><strong>Crater</strong> <span id="crater">—</span></div>
+          <div><strong>Severe radius</strong> <span id="severe">—</span></div>
+          <div><strong>Tsunami radius</strong> <span id="tsunami">—</span></div>
+          <div style="margin-top:8px">
+            <button id="downloadBtn">Download PNG</button>
           </div>
         </div>
       </div>
 
-      <div style="font-size:13px;color:var(--muted);margin-top:10px">
-        <strong>Model notes:</strong> mass = density × volume; kinetic energy = ½ m v². Crater and damage zones use simplified empirical scalings for educational use.
+      <canvas id="vis" width="900" height="500"></canvas>
+
+      <div class="note">
+        <strong>Notes:</strong> This demo pulls estimated diameter and last close-approach speed from NASA NeoWs where available. The simulation physics remains the simplified educational model from the previous version.
       </div>
-    </div>
-  </div>
+    </section>
+  </main>
 
-  <div class="card" style="min-height:420px">
-    <h3 style="margin-top:0">Visualization</h3>
-    <canvas id="vis" width="900" height="600" style="width:100%;height:400px;border-radius:10px;background:linear-gradient(180deg,#021021,#011020)"></canvas>
+  <footer>
+    Built with NASA NeoWs (Near-Earth Object Web Service). See API docs: api.nasa.gov. 
+  </footer>
 
-    <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
-      <label>Show overlays:</label>
-      <input type="checkbox" id="showLabels" checked> <small class="muted">labels</small>
-      <input type="checkbox" id="showGrid"> <small class="muted">lat/lon</small>
-      <div style="flex:1"></div>
-      <small class="muted">Save results / shareable</small>
-    </div>
-
-    <h4 style="margin-top:18px">Details & explanation</h4>
-    <div class="muted" style="line-height:1.5">
-      This demo uses simplified physics to estimate effects:
-      <ul>
-        <li>Mass = density × volume (sphere): m = ρ × (π/6)D³</li>
-        <li>Kinetic energy = 0.5 × m × (v m/s)² — displayed in joules, megatons TNT equivalent.</li>
-        <li>Crater diameter estimated via a simple scaling: D_crater ≈ k × D_asteroid^(0.78) × v^(0.44). The constants are tuned for visible demo results, not a rigorous model.</li>
-        <li>Tsunami radius for ocean hits is a rough proportional estimate (educational only).</li>
-      </ul>
-    </div>
-  </div>
-</div>
-
-<footer>Built for prototyping — adapt physics constants and plug in NASA datasets to improve realism.</footer>
-
-<script>
-/* Meteor Madness — educational impact simulator
-   Save as meteor-madness-sim.html and open locally.
-*/
-
-/* ---------- Utilities ---------- */
-const qs = sel => document.querySelector(sel);
-const toFixed = (n, d=2)=>Number(n).toLocaleString(undefined,{maximumFractionDigits:d});
-
-function degToRad(d){return d*Math.PI/180}
-function radToDeg(r){return r*180/Math.PI}
-
-/* ---------- UI elements ---------- */
-const diameter = qs('#diameter'), diameterN = qs('#diameterN');
-const velocity = qs('#velocity'), velocityN = qs('#velocityN');
-const density = qs('#density'), angle = qs('#angle'), angleN = qs('#angleN');
-const targetType = qs('#targetType');
-const latlonEl = qs('#latlon'), energyEl = qs('#energy'), craterEl = qs('#crater');
-const severeEl = qs('#severe'), thermalEl = qs('#thermal'), tsunamiEl = qs('#tsunami');
-const simulateBtn = qs('#simulate'), downloadBtn = qs('#downloadBtn');
-const globe = qs('#globe'), vis = qs('#vis');
-const showLabels = qs('#showLabels'), showGrid = qs('#showGrid');
-
-/* sync inputs */
-diameter.addEventListener('input', ()=>{diameterN.value=diameter.value});
-diameterN.addEventListener('input', ()=>{diameter.value = diameterN.value});
-velocity.addEventListener('input', ()=>{velocityN.value=velocity.value});
-velocityN.addEventListener('input', ()=>{velocity.value=velocityN.value});
-angle.addEventListener('input', ()=>{angleN.value=angle.value});
-angleN.addEventListener('input', ()=>{angle.value=angleN.value});
-
-/* ---------- Globe (simple circle with lat/lon mapping) ---------- */
-const gctx = globe.getContext('2d');
-const size = globe.width = globe.height = 360;
-const center = {x:size/2,y:size/2}, R = size*0.46;
-
-let selectedLat = 0, selectedLon = 0;
-
-/* draw simple globe with meridians/continents hint (very simple) */
-function drawGlobe(){
-  // clear
-  gctx.clearRect(0,0,size,size);
-  // water
-  gctx.beginPath();
-  gctx.arc(center.x,center.y,R,0,Math.PI*2);
-  gctx.fillStyle = '#032a36';
-  gctx.fill();
-  // faint meridians/lat
-  gctx.strokeStyle = 'rgba(255,255,255,0.03)';
-  gctx.lineWidth = 1;
-  for(let lon=-180; lon<=180; lon+=30){
-    gctx.beginPath();
-    for(let theta=-90; theta<=90; theta+=2){
-      const x = center.x + R * Math.cos(degToRad(theta)) * Math.cos(degToRad(lon));
-      const y = center.y + R * Math.sin(degToRad(theta));
-      if(theta==-90) gctx.moveTo(x,y); else gctx.lineTo(x,y);
-    }
-    gctx.stroke();
-  }
-  // simple continent blobs (not accurate — decorative)
-  gctx.fillStyle = 'rgba(120,120,120,0.08)';
-  gctx.beginPath(); gctx.ellipse(center.x-50, center.y-30, 80,50,degToRad(-20),0,Math.PI*2); gctx.fill();
-  gctx.beginPath(); gctx.ellipse(center.x+70, center.y+10, 90,60,degToRad(10),0,Math.PI*2); gctx.fill();
-
-  // marker
-  drawMarker();
-}
-function drawMarker(){
-  const p = latLonToXY(selectedLat, selectedLon);
-  gctx.beginPath();
-  gctx.fillStyle = '#ffcc00';
-  gctx.arc(p.x,p.y,6,0,Math.PI*2);
-  gctx.fill();
-  gctx.strokeStyle='rgba(0,0,0,0.5)';
-  gctx.lineWidth=2; gctx.stroke();
-}
-function latLonToXY(lat,lon){
-  // simple equirectangular -> circle projection mapping onto the visible disk
-  // lon: -180..180 maps to -pi..pi around circle horizontally
-  const phi = degToRad(lat);
-  const lambda = degToRad(lon);
-  // using simple orthographic-ish projection
-  const x = center.x + R * Math.cos(phi) * Math.sin(lambda);
-  const y = center.y - R * Math.sin(phi);
-  return {x,y};
-}
-function xyToLatLon(x,y){
-  const dx = x - center.x, dy = center.y - y;
-  const lat = radToDeg(Math.asin(dy / R));
-  const lon = radToDeg(Math.atan2(dx, Math.sqrt(Math.max(0,R*R - dx*dx - (dy*dy))) )); // approximate
-  // fallback: compute lon from x relative
-  const lon2 = radToDeg(Math.atan2(dx, Math.cos(degToRad(lat))*R));
-  return {lat: Math.max(-89.9,Math.min(89.9,lat||0)), lon: Math.max(-179.9,Math.min(179.9,lon2||0))};
-}
-
-globe.addEventListener('pointerdown', (e)=>{
-  const rect = globe.getBoundingClientRect();
-  const x = (e.clientX - rect.left) * (globe.width/rect.width);
-  const y = (e.clientY - rect.top) * (globe.height/rect.height);
-  const d = Math.hypot(x-center.x,y-center.y);
-  if(d>R) return; // outside globe
-  const ll = xyToLatLon(x,y);
-  selectedLat = +ll.lat.toFixed(3);
-  selectedLon = +ll.lon.toFixed(3);
-  drawGlobe();
-  latlonEl.textContent = `${selectedLat}°, ${selectedLon}°`;
-});
-
-/* initial globe */
-drawGlobe();
-
-/* ---------- Physics & model ---------- */
-
-function computeImpact(params){
-  // params: diameter (m), velocity (km/s), density (kg/m3), angle (deg), targetType 'land'|'ocean'
-  const D = params.diameter;
-  const v_ms = params.velocity*1000; // km/s -> m/s
-  const rho = params.density;
-  // volume of sphere: (π/6) * D^3
-  const volume = Math.PI/6 * Math.pow(D,3); // m^3
-  const mass = rho * volume; // kg
-  // kinetic energy
-  const energyJ = 0.5 * mass * v_ms * v_ms; // J
-  const energyMegatons = energyJ / 4.184e15; // 1 Mt TNT = 4.184e15 J
-
-  // Crater diameter estimate (very rough educational scaling)
-  // Use D_crater ~ K * D^0.78 * v^0.44 * (rho/rho_target)^0.333
-  // choose K ~ 1.8 for visible demo scaling (not rigorous)
-  const rho_target = 2500; // target rock density
-  const K = 1.8;
-  const craterM = K * Math.pow(D,0.78) * Math.pow(params.velocity,0.44) * Math.pow(rho/rho_target,0.333);
-  const craterKm = craterM/1000;
-
-  // Damage radii (extremely simplified heuristics)
-  // severe damage radius ~ 5 × crater radius
-  const severe_m = craterM * 5;
-  // thermal radius (people burned) ~ 12 × crater radius (completely heuristic)
-  const thermal_m = craterM * 12;
-  // light damage ~ 30 × crater radius
-  const light_m = craterM * 30;
-
-  // tsunami radius (if ocean): scale with energy^0.33 to keep growth reasonable
-  let tsunami_km = 0;
-  if(params.targetType === 'ocean'){
-    tsunami_km = Math.min(2000, Math.pow(energyMegatons, 0.33) * 50); // very rough cap
-  }
-
-  return {
-    mass, energyJ, energyMegatons,
-    craterM, craterKm,
-    severe_m, thermal_m, light_m,
-    tsunami_km
-  };
-}
-
-/* ---------- Visualization ---------- */
-const vctx = vis.getContext('2d');
-
-function clearVis(){
-  vctx.clearRect(0,0,vis.width,vis.height);
-  // background stars
-  vctx.fillStyle = '#00121a';
-  vctx.fillRect(0,0,vis.width,vis.height);
-}
-
-function drawEarthBase(){
-  const w = vis.width, h = vis.height;
-  const ex = w*0.5, ey = h*0.5, er = Math.min(w,h)*0.38;
-  // ocean disk
-  vctx.beginPath();
-  vctx.arc(ex,ey,er,0,Math.PI*2);
-  vctx.fillStyle = '#002b36';
-  vctx.fill();
-
-  // faint decorative continents (not accurate)
-  vctx.fillStyle = 'rgba(120,120,120,0.06)';
-  vctx.beginPath(); vctx.ellipse(ex-110,ey-30,140,80,degToRad(-20),0,Math.PI*2); vctx.fill();
-  vctx.beginPath(); vctx.ellipse(ex+130,ey+10,160,90,degToRad(10),0,Math.PI*2); vctx.fill();
-
-  // equator and meridians if asked
-  if(showGrid.checked){
-    vctx.strokeStyle = 'rgba(255,255,255,0.03)';
-    vctx.lineWidth = 1;
-    // equator
-    vctx.beginPath(); vctx.ellipse(ex,ey,er,er*0.12,0,0,Math.PI*2); vctx.stroke();
-  }
-  return {ex,ey,er};
-}
-
-function latLonToVisXY(lat,lon,ex,ey,er){
-  // reuse earlier simple projection - orthographic-ish into visual canvas
-  const phi = degToRad(lat);
-  const lambda = degToRad(lon);
-  const x = ex + er * Math.cos(phi) * Math.sin(lambda);
-  const y = ey - er * Math.sin(phi);
-  return {x,y};
-}
-
-function drawImpactVisualization(res, params){
-  clearVis();
-  const base = drawEarthBase();
-  const ex = base.ex, ey = base.ey, er = base.er;
-
-  const p = latLonToVisXY(selectedLat, selectedLon, ex, ey, er);
-
-  // compute scale: treat 1 pixel = some meters on globe; compute globe circumference ~ 2πR_earth
-  // approximate mapping: globe radius in pixels corresponds to Earth's radius ~6371 km
-  // so meters per pixel:
-  const earthRadiusM = 6371000;
-  const metersPerPixel = earthRadiusM * Math.PI * 2 / (2*Math.PI*er); // simplifies to earthRadiusM/er
-  // m/px = earthRadiusM / er
-  const m_per_px = earthRadiusM / er;
-
-  // colors and radii (converted to px)
-  const crater_px = Math.max(2, res.craterM / m_per_px);
-  const severe_px = Math.max(3, res.severe_m / m_per_px);
-  const thermal_px = Math.max(3, res.thermal_m / m_per_px);
-  const light_px = Math.max(3, res.light_m / m_per_px);
-  const tsunami_px = res.tsunami_km*1000 / m_per_px;
-
-  // tsunami ring (if ocean)
-  if(params.targetType === 'ocean' && res.tsunami_km > 0){
-    vctx.beginPath();
-    vctx.arc(p.x,p.y,tsunami_px,0,Math.PI*2);
-    vctx.fillStyle = 'rgba(60,150,255,0.12)';
-    vctx.fill();
-    vctx.strokeStyle = 'rgba(60,150,255,0.45)';
-    vctx.lineWidth=2;
-    vctx.stroke();
-  }
-
-  // light damage
-  vctx.beginPath();
-  vctx.arc(p.x,p.y,light_px,0,Math.PI*2);
-  vctx.fillStyle = 'rgba(255,200,120,0.14)';
-  vctx.fill();
-
-  // thermal
-  vctx.beginPath();
-  vctx.arc(p.x,p.y,thermal_px,0,Math.PI*2);
-  vctx.fillStyle = 'rgba(255,170,60,0.14)';
-  vctx.fill();
-
-  // severe
-  vctx.beginPath();
-  vctx.arc(p.x,p.y,severe_px,0,Math.PI*2);
-  vctx.fillStyle = 'rgba(255,80,60,0.18)';
-  vctx.fill();
-
-  // crater
-  vctx.beginPath();
-  vctx.arc(p.x,p.y,crater_px,0,Math.PI*2);
-  vctx.fillStyle = 'rgba(255,255,255,0.95)';
-  vctx.fill();
-
-  // impact point flash
-  vctx.beginPath();
-  vctx.arc(p.x,p.y,Math.max(6,crater_px*0.4),0,Math.PI*2);
-  vctx.fillStyle = 'rgba(255,230,180,0.95)';
-  vctx.fill();
-
-  // labels
-  if(showLabels.checked){
-    vctx.fillStyle = '#eaf6ff';
-    vctx.font = '13px system-ui,Arial';
-    vctx.fillText(`Impact: ${selectedLat}°, ${selectedLon}°`, 14, 24);
-    vctx.fillText(`Asteroid: ${params.diameter} m @ ${params.velocity} km/s`, 14, 44);
-    vctx.fillStyle = '#9fb7c2';
-    vctx.font = '12px system-ui';
-    vctx.fillText(`Crater ≈ ${toFixed(res.craterKm,2)} km`, 14, 66);
-  }
-}
-
-/* ---------- UI actions ---------- */
-
-function updateAndSimulate(){
-  const params = {
-    diameter: Number(diameter.value),
-    velocity: Number(velocity.value),
-    density: Number(density.value),
-    angle: Number(angle.value),
-    targetType: targetType.value
-  };
-  const res = computeImpact(params);
-
-  // update numeric UI
-  energyEl.textContent = `${toFixed(res.energyMegatons,3)} Mt TNT (${toFixed(res.energyJ,0)} J)`;
-  craterEl.textContent = `${toFixed(res.craterM,1)} m (${toFixed(res.craterKm,3)} km)`;
-  severeEl.textContent = `${toFixed(res.severe_m/1000,2)} km`;
-  thermalEl.textContent = `${toFixed(res.thermal_m/1000,2)} km`;
-  tsunamiEl.textContent = params.targetType==='ocean' ? `${toFixed(res.tsunami_km,1)} km` : '—';
-
-  // draw visualization
-  drawImpactVisualization(res, params);
-}
-
-simulateBtn.addEventListener('click', ()=>{ updateAndSimulate(); });
-
-// initial simulate
-updateAndSimulate();
-
-/* download canvas */
-downloadBtn.addEventListener('click', ()=>{
-  const link = document.createElement('a');
-  link.download = 'meteor-impact.png';
-  link.href = vis.toDataURL('image/png');
-  link.click();
-});
-
-/* rerun when inputs change for instant feedback */
-[diameter,velocity,density,angle,targetType,showLabels,showGrid].forEach(el=>{
-  el.addEventListener('change', ()=> updateAndSimulate());
-  el.addEventListener('input', ()=> updateAndSimulate());
-});
-
-window.addEventListener('resize', ()=> {
-  // nothing needed; canvases have fixed internal size set
-});
-
-/* keyboard quick test */
-document.addEventListener('keydown', (e)=>{
-  if(e.key===' ') { e.preventDefault(); updateAndSimulate(); }
-});
-</script>
+  <script src="app.js"></script>
 </body>
 </html>
